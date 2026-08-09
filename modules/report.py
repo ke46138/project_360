@@ -1,53 +1,76 @@
-import config
-from modules import auth
+"""Модуль с системой репортов"""
+
+from aiogram import Router, types, Bot
+from aiogram.filters import Command
+
 from modules import botdebug as d
-import traceback
+from modules import filters
+from modules import mysql_adapter as sql
+from modules import utils
 
-def setup_report_handlers(bot):
-# /report never gonna give you up
-    @bot.message_handler(commands=['report'])
-    def report(message):
-        try:
-            if message.reply_to_message:
-                if message.reply_to_message.sender_chat:
-                    user_id = message.sender_chat.id
-                elif message.reply_to_message.from_user:
-                    user_id = message.from_user.id
-                else:
-                    bot.reply_to(message, "Ошибка: не удалось определить отправителя")
-                    return
-                
-                command_text = message.text
-                report_text = ""
+router = Router()
 
-                if user_id == message.reply_to_message.from_user.id:
-                    bot.reply_to(message, "Саморепорт запрещён")
-                    return
+@router.message(Command('report'))
+@d.bugreport
+@filters.cooldown
+@filters.only_groups
+async def report(message: types.Message, bot: Bot):
+    """Отправляет жалобы администраторам"""
+    if message.reply_to_message:
+        if message.sender_chat:
+            user_id = message.sender_chat.id
+        elif message.from_user:
+            user_id = message.from_user.id
+        else:
+            await message.reply("⚠️ Ошибка: не удалось определить отправителя")
+            return
 
-                if user_id in config.admins or user_id in config.allowed_chats:
-                    bot.reply_to(message, "Репорт админов запрещён")
-                    return
-                
-                if message.reply_to_message.from_user.id == report_bot_id:
-                    bot.reply_to(message, "Репорт бота запрещён")
-                    return
+        if user_id == message.reply_to_message.from_user.id:
+            await message.reply("⚠️ Саморепорт запрещён")
+            return
 
-                report_text = command_text.split(" ", 1)[1] if " " in command_text else "Не указано"
+        bot_admins = await sql.get_group_admins(message.chat.id, bot)
 
-                message_text = message.reply_to_message.text
+        if message.reply_to_message.from_user.id == utils.BOT_ID:
+            await message.reply("⚠️ Репорт бота запрещён")
+            return
 
-                bot.send_message(report_admin_userid, f"""
+        for i in bot_admins:
+            if i[0] == user_id and i[1] >= 100:
+                await message.reply("⚠️ Репорт админов запрещён")
+                return
+
+        report_text = message.text.split(" ", 1)[1] if " " in message.text else "Не указано"
+        fullname_from = f"{message.from_user.first_name} {message.from_user.last_name or ''}".strip()
+        fullname_to = f"{message.reply_to_message.from_user.first_name} \
+{message.reply_to_message.from_user.last_name or ''}".strip()
+
+        for i in bot_admins:
+            if i[1] >= 100:
+                try:
+                    await bot.send_message(
+                        i[0],
+                        f"""
 📢 <b>Новая жалоба</b>
 
-От: @{message.from_user.username}
-На: @{message.reply_to_message.from_user.username}
-Текст сообщения: "{message_text}"
-Ссылка на сообщение: <a href="https://t.me/c/{str(message.reply_to_message.chat.id)[4:]}/{message.reply_to_message.message_id}">Тыкъ</a>
+От: <a href=\"tg://user?id={message.from_user.id}\">{fullname_from}</a>
+На: <a href=\"tg://user?id={message.reply_to_message.from_user.id}\">{fullname_to}</a>
+Текст сообщения: "{message.reply_to_message.text}"
+Ссылка на сообщение: <a href="https://telegram.me/c/{str(message.chat.id)[4:]}/{message.reply_to_message.message_id}">Тыкъ</a>
 Причина: {report_text}
-""", parse_mode='HTML')
+""",
+                        parse_mode='HTML'
+                    )
+                except:
+                    continue
 
-                bot.reply_to(message, f"На пользователя @{message.reply_to_message.from_user.username} был кинут репорт")
-            else:
-                bot.reply_to(message, "Вы должны ответить на сообщение пользователя, на которого хотите кинуть репорт")
-        except:
-            d.send_view_traceback(message, traceback.format_exc())
+        await message.reply(
+            f"📢 На пользователя \
+<a href=\"tg://user?id={message.reply_to_message.from_user.id}\">{fullname_to}</a> \
+была отправлена жалоба",
+            parse_mode='HTML',
+            disable_web_page_preview=True
+        )
+    else:
+        await message.reply("⚠️ Вы должны ответить на сообщение пользователя, \
+на которого хотите отправить жалобу")

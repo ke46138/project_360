@@ -1,17 +1,15 @@
-from modules import botdebug as d
-from modules import retrying
 import traceback
+from aiogram import Router, types, F, Bot
+
+from modules import botdebug as d
 import config
 
-def setup_handlers(bot):
+router = Router()
 
-    def from_specific_channel(message):
-        return message.sender_chat and message.sender_chat.id == config.channel_id
-
-    @bot.message_handler(func=from_specific_channel, content_types=['text', 'photo', 'video', 'audio', 'document', 'sticker', 'voice', 'video_note', 'animation', 'contact', 'location', 'poll'])
-    def advert(message):
-        try:
-            retrying.safe_api_call(bot.unpin_chat_message, message.chat.id, message.id) # bot.unpin_chat_message(message.chat.id, message.id)
-            retrying.safe_api_call(bot.reply_to, message, config.advert_text, parse_mode='HTML', disable_web_page_preview=True) # bot.reply_to(message, config.advert_text, parse_mode='HTML', disable_web_page_preview=True)
-        except:
-            d.send_view_traceback(message, traceback.format_exc())
+@router.message(F.sender_chat.id == config.CHANNEL_ID)
+async def advert(message: types.Message, bot: Bot):
+    try:
+        await message.unpin()
+        await message.reply(config.ADVERT_TEXT, parse_mode='HTML', disable_web_page_preview=True)
+    except:
+        await d.send_view_traceback(message, traceback.format_exc(), bot)

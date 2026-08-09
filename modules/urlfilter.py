@@ -1,44 +1,59 @@
-from urllib.parse import urlparse
+"""Фильтр ссылок"""
+
+import asyncio
 import re
+from urllib.parse import urlparse
+
+from aiogram import Router
+from cachetools import TTLCache
+
 import config
-import time
+from modules import async_tasks
 from modules import auth
+from modules import mysql_adapter as sql
+
+router = Router()
+cache = TTLCache(maxsize=512, ttl=900)
 
 def check_links_allowed(text: str) -> bool:
     """
     Проверяет, все ли ссылки в тексте принадлежат разрешённым доменам.
-    
+
     :param text: Строка с текстом, содержащим ссылки.
-    :param allowed_domains: Множество доменов, которые разрешены.
     :return: True, если все ссылки разрешены, иначе False.
     """
     url_pattern = re.compile(r'https?://[\w./?-]+')
-    
+
     for match in url_pattern.findall(text):
         parsed_url = urlparse(match)
         domain = parsed_url.netloc
 
-        if domain not in config.url_allowlist:
+        if domain not in config.URL_ALLOWLIST:
             return False
-    
+
     return True
 
-def setup_urlfilter_handlers(bot):
-    
-    @bot.message_handler(func=lambda message: True)
-    def filter(message):
-        allowed_links = check_links_allowed(message.text)
-        if not allowed_links:
-            result = auth.authorize(message)
+async def is_enabled(chatid):
+    if chatid in cache:
+        return cache[chatid]
 
-            if result == -1:
-                bot.reply_to(message, "Ошибка: не удалось определить отправителя. ПОЗДРАВЛЯЮ, КАК ТЫ ЭТО СДЕЛАЛ?")
-                return
-            elif result == 1:
-                return
+    result = await sql.get_urlfilter_enabled(chatid)
 
-            warn_message = bot.reply_to(message, "Запрещённая ссылка!")
-            time.sleep(1)
-            bot.delete_message(message.chat.id, message.message_id)
-            time.sleep(10)
-            bot.delete_message(warn_message.chat.id, warn_message.message_id)
+    cache[sql] = result
+    return result
+
+async def filter_msg(message, bot):
+    """Фильтрует ссылки от пользователей"""
+    if message.chat.type != "private":
+        if message.text:
+            if await is_enabled(message.chat.id) == 1:
+                allowed_links = check_links_allowed(message.text)
+                if not allowed_links:
+                    result = await auth.authorize(message, bot, level=100)
+
+                    if result == 1:
+                        return
+
+                    warn_message = await message.reply("⚠️ [[Ссылка заблокирована]]")
+                    await asyncio.create_task(async_tasks.delete_msg(message, bot, delay=1))
+                    await asyncio.create_task(async_tasks.delete_msg(warn_message, bot))

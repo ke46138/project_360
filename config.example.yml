@@ -1,0 +1,85 @@
+# Основные настройки
+main:
+  # Кодовое название инстанса
+  project_name: test
+  # Токен бота
+  # Создать бота и получить к нему токен можно в телеграме в боте @BotFather
+  bot_token: 0000000000:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+  # polling или webhook
+  api_mode: polling
+  # URL вебхука, по которому будет доступен вебхук
+  # Что такое вебхуки можно прочитать на https://core.telegram.org/bots/webhooks
+  webhook_url_full: http://127.0.0.1/webhook/0000000000:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/
+  # Путь, по которому будет обращаться nginx/telegram bot api. Полезно при использовании proxypass на nginx.
+  webhook_url: /webhook/0000000000:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/
+  # Интерфейс, на котором будет слушать веб сервер
+  # 0.0.0.0 - все интерфейсы
+  host: 0.0.0.0
+  # Порт веб сервера
+  port: 8080
+  # Включить кастомный Bot API сервер
+  custom_bot_api_enabled: false
+  # URL сервера Telegram Bot API
+  # Оставьте https://api.telegram.org если не хотите мучаться с настройкой своего сервера
+  #! КРАЙНЕ РЕКОМЕНДУЕТСЯ СВОЙ Telegram Bot API СЕРВЕР!!!
+  bot_api_server: https://api.telegram.org
+  # user_id пользователя, которому будут присылаться багрепорты
+  dev_userid: 0000000000
+  # user_id пользователей, которым будут доступны команды уровня 255 в лс
+  devs:
+    - 0000000000
+  # Путь, который будет замазываться в traceback
+  bot_path: /path/to/bot
+  # Текст для команды /about
+  about_bot: |
+    Бот на python + aiogram + fastapi для администрирования групп.
+    Разработчик: <a href="https://github.com/ke46138">ke46138</a>
+# Настройки MySQL базы данных
+# Тут сами разберётесь, всё и так понятно
+#* Не забудьте создать базу данных и дать пользователю все права на неё
+mysql_adapter:
+  host: localhost
+  port: 3306
+  user: user
+  password: password
+  database: tgbot
+# Настройки Redis 
+# Нужен только для антифлуда, хранения message id дипсика и как memorystorage для aiogram
+redis:
+  host: localhost
+  port: 6379
+  user: default # Оставьте default если не знаете пользователя/не настраивали ACL
+  password: password
+  database: 0
+# Список разрешённых доменов в фильтре ссылок
+#! DEPRECATED Скоро будет удалён
+url_filter:
+  allowlist:
+    - "youtu.be"
+    - "youtube.com"
+    - "tiktok.com"
+    - "vt.tiktok.com"
+    - "rutube.ru"
+    - "www.youtube.com"
+    - "www.youtu.be"
+    - "www.tiktok.com"
+    - "www.rutube.ru"
+    - "roblox.com"
+    - "www.roblox.com"
+entertainment:
+  # API ключ от нейросети
+  # Поддерживается любая нейронка, которая совместима с openai
+  ai_api_key: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+  # Endpoint нейросети
+  ai_endpoint: https://openrouter.ai/api/v1
+  # Модель
+  ai_model: google/gemini-2.0-flash-exp:free
+  # API ключ для /cat. Получить бесплатно можно на https://thecatapi.com/
+  cat_api_key: live_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+  # Ключ от приватного API дипсика
+  # Получить можно зайдя на https://chat.deepseek.com и введя в консоль dev tools (F12) "JSON.parse(localStorage.getItem("userToken")).value"
+  deepseek_api_key: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+  # Chat id чата. Можно получить из url: chat.deepseek.com/a/chat/s/b5fe4c6a-89e6-44dc-a768-e04c05eaa0dc, где b5fe4c6a-89e6-44dc-a768-e04c05eaa0dc chat id
+  deepseek_chatid: b5fe4c6a-89e6-44dc-a768-e04c05eaa0dc
+  # Message id последнего сообщения дипсика (запишется в redis если там нет)
+  deepseek_msgid: 2

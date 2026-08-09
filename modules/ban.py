@@ -1,135 +1,71 @@
-from modules import auth
-from modules import botdebug as d
 import traceback
+from aiogram import Router, types, Bot
+from aiogram.filters import Command
 
-def setup_handlers(bot):
+from modules import auth
+from modules import filters
+from modules import botdebug as d
+from modules import utils
 
-    @bot.message_handler(commands=['muteinf'])
-    def infinity_mute(message):
+router = Router()
+
+@router.message(Command('ban'))
+@d.bugreport
+@filters.only_groups
+@auth.require_auth(level=200)
+async def ban_user(message: types.Message, bot: Bot):
+    if message.reply_to_message:
+        if message.reply_to_message.from_user.id == 6562915401 and message.chat.id == -1002298339941:
+            await message.reply("⚠️ Абрикос, ТЫ ЗАЕБАЛ БАНИТЬ ЙЕЛОУКИТТЕН ПРОСТО ТАК")
+            return
+
+        if message.reply_to_message.from_user.id == 1312172800 and message.chat.id == -1002298339941:
+            await message.reply("⚠️ Нет :)")
+            return
+
+        admins = await bot.get_chat_administrators(message.chat.id)
+        admin_ids = [admin.user.id for admin in admins]
+
+        if message.reply_to_message.from_user.id in admin_ids:
+            await message.reply("⚠️ Пользователь является админом в данной группе")
+            return
+
+        reason = message.text.split(' ', 1)[1] if ' ' in message.text else "Не указана"
+
         try:
-            result = auth.authorize(message)
-
-            if result == 0:
-                bot.reply_to(message, "У вас нет прав на использование этой команды")
-                return
-            elif result == -1:
-                bot.reply_to(message, "Ошибка: не удалось определить отправителя. ПОЗДРАВЛЯЮ, КАК ТЫ ЭТО СДЕЛАЛ?")
-                return
-            elif result == 1:
-                pass
-            else:
-                raise ValueError("Итак вопрос: математика сломалась?")
-
-            reason = message.text[9:] if message.text[9:] != '' else "Причина не указана"
-            userToMute = message.reply_to_message.from_user.username
-            if userToMute == "" or userToMute == None:
-                userToMute = "USERNOTHAVEUSERNAME"
-
-            if message.reply_to_message:
-                bot.restrict_chat_member(message.chat.id, message.reply_to_message.user.id, can_send_messages=False)
-                bot.reply_to(
-                    message,
-                    f"Пользователь @{userToMute} замучен навсегда. Причина: {reason}"
-                )
-            else:
-                bot.reply_to(message, "Вы должны ответить на сообщение пользователя, которого хотите замутить навсегда.")
-
+            await bot.ban_chat_member(message.chat.id, message.reply_to_message.from_user.id)
         except:
-            d.send_view_traceback(message, traceback.format_exc())
-    
-    @bot.message_handler(commands=['ban'])
-    def ban_user(message):
-        try:
-            result = auth.authorize(message)
+            await message.reply("⚠️ Не удалось забанить пользователя. Возможно, у бота нет разрешения")
+            return
 
-            if result == 0:
-                bot.reply_to(message, "У вас нет прав на использование этой команды")
-                return
-            elif result == -1:
-                bot.reply_to(message, "Ошибка: не удалось определить отправителя. ПОЗДРАВЛЯЮ, КАК ТЫ ЭТО СДЕЛАЛ?")
-                return
-            elif result == 1:
-                pass
-            else:
-                raise ValueError("Итак вопрос: математика сломалась?")
+        await message.reply(
+            f"""
+#BAN
+Админ: {utils.wrap_actor_link(message)}
+Пользователь: {utils.wrap_actor_link(message.reply_to_message)}
+Причина: {reason}""",
+            disable_web_page_preview=True
+        )
+    else:
+        await message.reply("⚠️ Вы должны ответить на сообщение пользователя, \
+которого хотите забанить.")
 
-            reason = message.text[5:] if message.text[5:] != '' else "Причина не указана"
-
-            if message.reply_to_message:
-                username = message.reply_to_message.from_user.username
-                if username == "" or username == None:
-                    username = "USERNOTHAVEUSERNAME"
-                bot.ban_chat_member(message.chat.id, message.reply_to_message.from_user.id)
-                bot.reply_to(message, f"Пользователь @{username} забанен. Причина: {reason}")
-            else:
-                bot.reply_to(message, "Вы должны ответить на сообщение пользователя, которого хотите замутить.")
-            
-        except:
-            d.send_view_traceback(message, traceback.format_exc())
-    
-    @bot.message_handler(commands=['banid'])
-    def ban_user_by_id(message):
-        try:
-            result = auth.authorize(message)
-
-            if result == 0:
-                bot.reply_to(message, "У вас нет прав на использование этой команды")
-                return
-            elif result == -1:
-                bot.reply_to(message, "Ошибка: не удалось определить отправителя. ПОЗДРАВЛЯЮ, КАК ТЫ ЭТО СДЕЛАЛ?")
-                return
-            elif result == 1:
-                pass
-            else:
-                raise ValueError("Итак вопрос: математика сломалась?")
-            
-            idtoban = 000000
-            reason = "Причина не указана"
-
-            msgwords = message.text.split()
-
-            if not msgwords[1:1+1]:
-                bot.reply_to(message, "Введите user id кого хотите забанить. Если ты не Кирилл, то спроси у него user id пользователя которого хочешь забанить")
-                return
-
-            if msgwords[2:2+1] != []:
-                reason = msgwords[2]
-
-            idtoban = msgwords[1]
-
-            bot.ban_chat_member(message.chat.id, idtoban)
-
-            username = message.reply_to_message.from_user.username
-            if username == "" or username == None:
-                username = "USERNOTHAVEUSERNAME"
-            bot.reply_to(message, f"Пользователь @{username} забанен. Причина: {reason}")
-        except:
-            d.send_view_traceback(message, traceback.format_exc())
-
-    @bot.message_handler(commands=['unban'])
-    def unban_user(message):
-        try:
-            result = auth.authorize(message)
-
-            if result == 0:
-                bot.reply_to(message, "У вас нет прав на использование этой команды")
-                return
-            elif result == -1:
-                bot.reply_to(message, "Ошибка: не удалось определить отправителя. ПОЗДРАВЛЯЮ, КАК ТЫ ЭТО СДЕЛАЛ?")
-                return
-            elif result == 1:
-                pass
-            else:
-                raise ValueError("Итак вопрос: математика сломалась?")
-
-            if message.reply_to_message:
-                username = message.reply_to_message.from_user.username
-                if username == "" or username == None:
-                    username = "USERNOTHAVEUSERNAME"
-                bot.unban_chat_member(message.chat.id, message.reply_to_message.from_user.id)
-                bot.reply_to(message, f"Пользователь @{username} разбанен.")
-            else:
-                bot.reply_to(message, "Вы должны ответить на сообщение пользователя, которого хотите замутить.")
-
-        except:
-            d.send_view_traceback(message, traceback.format_exc())
+@router.message(Command('unban'))
+@filters.only_groups
+@auth.require_auth(level=200)
+async def unban_user(message: types.Message, bot: Bot):
+    try:
+        if message.reply_to_message:
+            await bot.unban_chat_member(message.chat.id, message.reply_to_message.from_user.id)
+            await message.reply(
+                f"""
+#UNBAN
+Админ: {utils.wrap_actor_link(message)}
+Пользователь: {utils.wrap_actor_link(message.reply_to_message)}""",
+                disable_web_page_preview=True
+            )
+        else:
+            await message.reply("⚠️ Вы должны ответить на сообщение пользователя, \
+которого хотите разбанить.")
+    except:
+        await d.send_view_traceback(message, traceback.format_exc(), bot)
