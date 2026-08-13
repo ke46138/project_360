@@ -1,4 +1,3 @@
-import asyncio
 import sys
 import json
 from pathlib import Path
@@ -7,7 +6,6 @@ import time
 
 from curl_cffi import requests, AsyncSession
 from typing import AsyncGenerator, Optional, Dict, Any, Generator, Literal
-import pkg_resources
 
 from modules.logger import logger
 from .pow import DeepSeekPOW
@@ -47,17 +45,6 @@ class DeepSeekAPI:
     def __init__(self, auth_token: str):
         if not auth_token or not isinstance(auth_token, str):
             raise AuthenticationError("Invalid auth token provided")
-
-        try:
-            curl_cffi_version = pkg_resources.get_distribution('curl-cffi').version
-            if curl_cffi_version != '0.8.1b9':
-                logger.warning("Warning: DeepSeek API requires curl-cffi version 0.8.1b9")
-                logger.warning(
-                    "Please install the correct version using: pip install curl-cffi==0.8.1b9"
-                )
-        except pkg_resources.DistributionNotFound:
-            logger.warning("Warning: curl-cffi not found. Please install version 0.8.1b9:")
-            logger.warning("pip install curl-cffi==0.8.1b9")
 
         self.auth_token = auth_token
         self.pow_solver = DeepSeekPOW()
@@ -146,7 +133,7 @@ AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
                 )
 
                 # Check if we hit Cloudflare protection
-                if "<!DOCTYPE html>" in response.text and "Just a moment" in response.text:
+                if "<!DOCTYPE html>" in response.text:
                     logger.warning(
                         "Warning: Cloudflare protection detected. Bypassing..."
                     )
