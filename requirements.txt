@@ -15,3 +15,5 @@ drissionpage
 prometheus_client
 openai
 aiohttp
+petrovich
+redis
