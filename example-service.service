@@ -1,11 +1,14 @@
 [Unit]
-Description=360 Total Security | Sentry
+Description=Example service
+Wants=network-online.target
+Requires=redis.service mariadb.service
+After=network-online.target redis.service mariadb.service
 
 [Service]
-ExecStart=python /home/orangepi/Telegram_admin_bot/main.py
+ExecStart=python /home/user/project_360/main.py
 Restart=on-failure
-User=orangepi
-WorkingDirectory=/home/orangepi/Telegram_admin_bot
+User=user
+WorkingDirectory=/home/user/project_360
 Type=notify
 TimeoutSec=120
 
