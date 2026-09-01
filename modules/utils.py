@@ -19,17 +19,30 @@ def wrap_actor_link(message: types.Message, incline=False, case=Case.GENITIVE):
     if incline:
         fullname = escape(incline_name(message, case))
     else:
-        fullname = escape(message.sender_chat.title if message.sender_chat else message.from_user.full_name)
-    if message.sender_chat:
+        fullname = escape(message.sender_chat.title if message.sender_chat else message.from_user.full_name) # type: ignore
+    if message.sender_chat and message.from_user.id != 777000:
         return f"<a href=\"https://telegram.me/{message.sender_chat.username}\">{fullname}</a>"
     return f"<a href=\"tg://user?id={message.from_user.id}\">{fullname}</a>"
 
-def incline_name(message, case):
+def wrap_actor_link_user(user: types.ResultChatMemberUnion, incline=False, case=Case.GENITIVE):
+    if incline:
+        fullname = escape(incline_name_user(user, case))
+    else:
+        fullname = escape(user.user.full_name)
+
+    return f"<a href=\"tg://user?id={user.user.id}\">{fullname}</a>"
+
+def incline_name(message: types.Message, case):
     if message.sender_chat:
         return petrovich.firstname(message.sender_chat.title, case)
     return f"{petrovich.firstname(message.from_user.first_name, case)} \
 {petrovich.lastname(message.from_user.last_name, case) \
 if message.from_user.last_name else ""}".strip()
+
+def incline_name_user(user: types.ResultChatMemberUnion, case):
+    return f"{petrovich.firstname(user.user.first_name, case)} \
+{petrovich.lastname(user.user.last_name, case) \
+if user.user.last_name else ""}".strip()
 
 async def set_bot_id(bot: Bot):
     global BOT_ID, BOT_USERNAME

@@ -73,7 +73,7 @@ async def beer_top_command(message: types.Message, bot: Bot):
 выпито {user['drinkedtotal']} литров пива\n"
         i += 1
 
-    if msg != "":
+    if msg != "📊 Топ 10 пивозавров чата:\n\n":
         await message.reply(msg, parse_mode="HTML", disable_notification=True)
     else:
         await message.reply(
