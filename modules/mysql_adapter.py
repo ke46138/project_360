@@ -850,3 +850,29 @@ async def get_group_user_description(chatid: str | int, userid: str | int):
                 )
                 result = await cursor.fetchone()
             return result["description"]
+
+async def add_group_user_award(
+        chatid: int,
+        from_userid: int,
+        to_userid: int,
+        level: int,
+        text: str
+    ):
+    async with pool.acquire() as conn:
+        async with conn.cursor(aiomysql.DictCursor) as cursor:
+            await cursor.execute(
+                """
+INSERT INTO awards (chat_id, from_user_id, to_user_id, level, text)
+VALUES (%s, %s, %s, %s, %s)""",
+                (chatid, from_userid, to_userid, level, text,)
+            )
+
+async def get_group_user_awards(chatid: int, userid: int):
+    async with pool.acquire() as conn:
+        async with conn.cursor(aiomysql.DictCursor) as cursor:
+            await cursor.execute(
+                """
+SELECT * FROM awards WHERE chat_id = %s AND to_user_id = %s""",
+                (chatid, userid,)
+            )
+            return await cursor.fetchall()

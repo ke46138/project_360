@@ -31,6 +31,7 @@ logger.info("[4/4] Загрузка модулей...")
 
 from modules import admin_arbuz
 from modules import auth
+from modules import awards
 from modules import beer
 from modules import botdebug
 from modules import ban
@@ -99,6 +100,7 @@ dp.include_router(admin_arbuz.router)
 dp.include_router(entertainment.router)
 dp.include_router(chat_management.router)
 dp.include_router(profiles.router)
+dp.include_router(awards.router)
 dp.include_router(tags.router)
 dp.include_router(iris_bindings.router)
 dp.include_router(message_router.router)
