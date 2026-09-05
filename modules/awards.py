@@ -29,7 +29,7 @@ async def award_command(message: types.Message, bot: Bot):
         await message.reply("⚠️ Неверные аргументы. Использование: /award уровень_награды текст награды")
         return
 
-    level, text = args[2], " ".join(args[3:])
+    level, text = args[1], " ".join(args[2:])
 
     try:
         level = int(level)
@@ -60,7 +60,7 @@ async def award_command(message: types.Message, bot: Bot):
 async def awards_command(message: types.Message, bot: Bot):
     if message.reply_to_message and message.reply_to_message.from_user.id != 777000: # type: ignore
         target = message.reply_to_message.from_user.id # type: ignore
-        string = [f"🏆 Награды {utils.wrap_actor_link(message, incline=True, case=Case.ACCUSATIVE)}:", ""]
+        string = [f"🏆 Награды {utils.wrap_actor_link(message.reply_to_message, incline=True, case=Case.ACCUSATIVE)}:", ""]
     else:
         target = message.from_user.id # type: ignore
         string = ["🏆 Ваши награды:", ""]
