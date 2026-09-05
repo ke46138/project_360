@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="color-scheme" content="light dark" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yohns/picocss@2.2.10/css/pico.min.css" />
+        <title>Список команд Тотальная Защита 360</title>
+    </head>
+    <body>
+        <main class="container">
+            <article>
+				<header><h2>Список команд Тотальная Защита 360</h2></header>
+				<p>Здесь можно найти полный список команд бота Тотальная Защита 360. Команды, которые требуют указания целевого пользователя используются с ответом на сообщение нужного пользователя.</p>
+				<p>Официальный бот в Telegram: <a href="https://telegram.me/EbO_total_security_bot">@EbO_total_security_bot</a><p>
+            </article>
+            <hr>
+            <article>
+				<header><h2>Оглавление</h2></header>
+				<ol>
+					<li><a href="#admin-management">Управление админами</a></li>
+					<li><a href="#group-management">Управление группой</a></li>
+					<li><a href="#mute">Муты</a></li>
+					<li><a href="#bans">Баны</a></li>
+					<li><a href="#user-group-commands">Пользовательские групповые команды</a></li>
+					<li><a href="#beer_module">Модуль пива</a></li>
+					<li><a href="#rep_module">Репутация</a></li>
+					<li><a href="#marriages">Браки</a></li>
+					<li><a href="#economy-module">Экономика</a></li>
+					<li><a href="#awards-module">Награды</a></li>
+					<li><a href="#inline-mode">Inline режим</a></li>
+				</ol>
+            </article>
+            <hr>
+            <article>
+				<header id="admin-management"><h2>Управление админами</h2></header>
+				<p>По умолчанию единственным админом является владелец группы.</p>
+				<ol>
+					<li>
+						<strong>/set_admin</strong>
+						<ul>
+							<li><small>Минимальный уровень доступа: главный админ (200)</small></li>
+							<li><small>Требует указать целевого пользователя</small></li>
+						</ul>
+						<p>Назначает/снимает админа. Использование:</p>
+						<pre><code>/set_admin {ранг}</code></pre>
+						<p>Доступные ранги (в скобках указан уровень доступа):</p>
+						<ul>
+							<li><p>никто (0)</p></li>
+							<li><p>модератор (100)</p></li>
+							<li><p>главный админ (200)</p></li>
+						</ul>
+						<p>Главный админ имеет все права, а модератор все кроме бана и назначения других админов. Ранг никто - снять админа.</p>
+					</li>
+				</ol>
+            </article>
+            <hr>
+            <article>
+				<header id="group-management"><h2>Управление группой</h2></header>
+				<ol>
+					<li>
+						<strong>/pin</strong>
+						<ul>
+							<li><small>Минимальный уровень доступа: модератор (100)</small></li>
+							<li><small>Требует указать целевое сообщение</small></li>
+						</ul>
+						<p>Закрепить указанное сообщение</p>
+					</li>
+					<li>
+						<strong>/unpin</strong>
+						<ul>
+							<li><small>Минимальный уровень доступа: модератор (100)</small></li>
+							<li><small>Требует указать целевое сообщение</small></li>
+						</ul>
+						<p>Открепить указанное сообщение</p>
+					</li>
+					<li>
+						<strong>/set_rules</strong>
+						<ul>
+							<li><small>Минимальный уровень доступа: главный админ (200)</small></li>
+						</ul>
+						<p>Установить правила группы. Использование: </p>
+						<pre><code>/set_rules {правила}</code></pre>
+						<p>Для форматирования текста используются html теги. Список тегов можно посмотреть <a href="https://core.telegram.org/bots/api#html-style">здесь</a></p>
+					</li>
+					<li>
+						<strong>/set_hello</strong>
+						<ul>
+							<li><small>Минимальный уровень доступа: модератор (100)</small></li>
+						</ul>
+						<p>Установить приветствие группы. Использование: </p>
+						<pre><code>/set_hello {правила}</code></pre>
+						<p>Для форматирования текста используются html теги. Список тегов можно посмотреть <a href="https://core.telegram.org/bots/api#html-style">здесь</a></p>
+					</li>
+					<li>
+						<strong>/toggle_hello</strong>
+						<ul>
+							<li><small>Минимальный уровень доступа: модератор (100)</small></li>
+						</ul>
+						<p>Включить/выключить приветствие группы</p>
+					</li>
+				</ol>
+            </article>
+            <hr>
+            <article>
+				<header id="mute"><h2>Муты</h2></header>
+				<ol>
+					<li>
+						<strong>/mute</strong>
+						<ul>
+							<li><small>Минимальный уровень доступа: модератор (100)</small></li>
+							<li><small>Требует указать целевого пользователя</small></li>
+						</ul>
+						<p>Выдать мут пользователю. Использование:</p>
+						<pre><code>/mute {число}{единица времени} причина</code></pre>
+						<p>Поддерживаемые единицы времени:</p>
+						<ul>
+							<li><p>s - секунды</p></li>
+							<li><p>m - минуты</p></li>
+							<li><p>d - дни</p></li>
+							<li><p>w - недели</p></li>
+						</ul>
+						<p>Внимание: мут более чем на год будет засчитан как мут навсегда из-за ограничений Telegram</p>
+					</li>
+					<li>
+						<strong>/unmute</strong>
+						<ul>
+							<li><small>Минимальный уровень доступа: модератор (100)</small></li>
+							<li><small>Требует указать целевого пользователя</small></li>
+						</ul>
+						<p>Размутить пользователя</p>
+					</li>
+				</ol>
+            </article>
+            <hr>
+            <article>
+				<header id="bans"><h2>Баны</h2></header>
+				<ol>
+					<li>
+						<strong>/ban</strong>
+						<ul>
+							<li><small>Минимальный уровень доступа: главный админ (200)</small></li>
+							<li><small>Требует указать целевого пользователя</small></li>
+						</ul>
+						<p>Забанить пользователя</p>
+					</li>
+					<li>
+						<strong>/unban</strong>
+						<ul>
+							<li><small>Минимальный уровень доступа: главный админ (200)</small></li>
+							<li><small>Требует указать целевого пользователя</small></li>
+						</ul>
+						<p>Разбанить пользователя</p>
+					</li>
+				</ol>
+            </article>
+            <hr>
+            <article>
+				<header id="user-group-commands"><h2>Пользовательские групповые команды</h2></header>
+				<ol>
+					<li>
+						<strong>/admins</strong>
+						<p>Показать список админов</p>
+					</li>
+					<li>
+						<strong>/ping_admins</strong>
+						<p>Пингануть всех админов</p>
+					</li>
+					<li>
+						<strong>/rules</strong>
+						<p>Показать правила чата</p>
+					</li>
+				</ol>
+            </article>
+            <hr>
+            <article>
+				<header id="beer_module"><h2>Модуль пива</h2></header>
+				<ol>
+					<li>
+						<strong>/beer</strong>
+						<p>Раз в час можно выпить рандомное количество пива</p>
+					</li>
+					<li>
+						<strong>/beer_top</strong>
+						<p>Вывести топ 10 алкашей чата</p>
+					</li>
+				</ol>
+            </article>
+            <hr>
+            <article>
+				<header id="rep_module"><h2>Репутация</h2></header>
+				<ol>
+					<li>
+						<strong>/add_rep</strong>
+						<ul>
+							<li><small>Требует указать целевого пользователя</small></li>
+						</ul>
+						<p>Добавить репутацию пользователю. Добавлять можно только раз в час</p>
+					</li>
+					<li>
+						<strong>/my_rep</strong>
+						<p>Посмотреть свою репутацию</p>
+					</li>
+				</ol>
+            </article>
+			<hr>
+            <article>
+				<header id="marriages"><h2>Браки</h2></header>
+				<ol>
+					<li>
+						<strong>/marriages</strong>
+						<p>Показать браки чата</p>
+					</li>
+					<li>
+						<strong>/marriage</strong>
+						<ul>
+							<li><small>Требует указать целевого пользователя</small></li>
+						</ul>
+						<p>Войти в брак с указанным пользователем, если он согласится</p>
+					</li>
+					<li>
+						<strong>/divorce</strong>
+						<p>Развестись</p>
+					</li>
+				</ol>
+            </article>
+            <hr>
+            <article>
+				<header id="economy-module"><h2>Экономика</h2></header>
+				<ol>
+					<li>
+						<strong>/dep</strong>
+						<p>Депнуть 100 Т₽. Можно как и проиграть их, так и выиграть 500 Т₽</p>
+					</li>
+					<li>
+						<strong>/wallet</strong>
+						<p>Посмотреть свой баланс. Ответив на сообщение пользователя, можно посмотреть сколько у него тёмных рублей в кошельке</p>
+					</li>
+					<li>
+						<strong>/dr_board</strong>
+						<p>Показать топ 10 богачей</p>
+					</li>
+					<li>
+						<strong>/dr_board_debt</strong>
+						<p>Показать топ 10 должников</p>
+					</li>
+					<li>
+						<strong>/give_money</strong>
+						<p>Передать указанное количество тёмных рублей. Использование:</p>
+						<pre><code>/give_money {число}</code></pre>
+					</li>
+				</ol>
+            </article>
+            <hr>
+            <article>
+				<header id="awards-module"><h2>Награды</h2></header>
+				<ol>
+					<li>
+						<strong>/award</strong>
+						<ul>
+							<li><small>Минимальный уровень доступа: модератор (100)</small></li>
+							<li><small>Требует указать целевого пользователя</small></li>
+						</ul>
+						<p>Выдать награду пользователю. Использование:</p>
+						<pre><code>/awards уровень_награды текст награды</code></pre>
+						<p>Уровень награды может быть от 1 до 100</p>
+					</li>
+					<li>
+						<strong>/awards</strong>
+						<p>Посмотреть свои награды. Ответив на сообщение пользователя, можно посмотреть его награды</p>
+					</li>
+				</ol>
+            </article>
+            <hr>
+            <article>
+				<header id="inline-mode"><h2>Inline режим</h2></header>
+				<p>Запрос состоит из названия режима и его аргументов. Пример:</p>
+				<pre><code>@EbO_total_security_bot mode something</code></pre>
+				<ul>
+					<li><p>mode - режим</p></li>
+					<li><p>something - аргументы режима</p></li>
+				</ul>
+				<p>Доступные режимы:</p>
+				<ul>
+					<li>
+						<strong>whisper</strong>
+						<p>Отправить секретное сообщение по юзернейму или user_id. Принимает аргументы в формате @EbO_total_security_bot whisper @юзернейм текст сообщения.</p>
+					</li>
+					<li>
+						<strong>anti-whisper</strong>
+						<p>Тоже самое что и whisper, но наоборот: сообщение не сможет посмотреть тот пользователь, которого вы указали.</p>
+					</li>
+					<li>
+						<strong>text2windings</strong>
+						<p>Перевести английский текст в windings</p>
+					</li>
+					<li>
+						<strong>windings2text</strong>
+						<p>Перевести текст на windings в обычный</p>
+					</li>
+				</ul>
+            </article>
+        </main>
+    </body>
+</html>
