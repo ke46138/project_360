@@ -48,7 +48,7 @@ async def add_user(userid, chatid):
     async with pool.acquire() as conn:
         async with conn.cursor() as cursor:
             await cursor.execute(
-                'INSERT IGNORE INTO users_table (id, chatid) VALUES (%s, %s)',
+                'INSERT IGNORE INTO users_table (user_id, chat_id) VALUES (%s, %s)',
                 (userid, chatid,)
             )
 
@@ -57,7 +57,7 @@ async def remove_user(userid, chatid):
     async with pool.acquire() as conn:
         async with conn.cursor() as cursor:
             await cursor.execute(
-                'DELETE FROM users_table WHERE id = %s AND chatid = %s',
+                'DELETE FROM users_table WHERE user_id = %s AND chat_id = %s',
                 (userid, chatid,)
             )
 
@@ -65,7 +65,7 @@ async def add_user_many(queries):
     async with pool.acquire() as conn:
         async with conn.cursor() as cursor:
             await cursor.executemany(
-                "INSERT IGNORE INTO users_table (id, chatid) VALUES (%s, %s)",
+                "INSERT IGNORE INTO users_table (user_id, chat_id) VALUES (%s, %s)",
                 queries
             )
 
