@@ -17,3 +17,4 @@ openai
 aiohttp
 petrovich
 redis
+python-dotenv
