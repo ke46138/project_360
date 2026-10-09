@@ -1,7 +1,6 @@
 fastapi
 aiogram
 PyYAML
-sdnotify
 uvicorn
 aiomysql
 cachetools
