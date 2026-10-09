@@ -13,7 +13,6 @@ logging.basicConfig(
     level=logging.INFO,
     format=LOG_FORMAT,
     handlers=[
-        logging.FileHandler(f"logs/app-{config.PROJECT_NAME}.log", encoding="utf-8"), # Я в курсе, что так делать нельзя
         logging.StreamHandler()
     ]
 )
