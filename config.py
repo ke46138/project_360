@@ -46,8 +46,6 @@ class _Config:
 
     def reload(self) -> None:
         """Перезагружает конфигурацию из переменных окружения"""
-        load_dotenv(override=True)
-
         self.PROJECT_NAME = os.getenv("PROJECT_NAME", "nodef")
         self.BOT_TOKEN = os.getenv("BOT_TOKEN", "")
         self.API_MODE = os.getenv("API_MODE", "polling")
