@@ -458,15 +458,15 @@ async def update_urlfilter_enabled(chatid, isEnabled):
 async def get_group_users(chatid):
     """Получить пользователей группы"""
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
+        async with conn.cursor(aiomysql.DictCursor) as cursor:
             await cursor.execute(
                 'SELECT * FROM users_table WHERE chat_id = %s',
                 (chatid,)
             )
             result = await cursor.fetchall()
             users = []
-            for i in result:
-                users.append(i[0])
+            for user in result:
+                users.append(user["user_id"])
             return users
 
 async def get_all_group_users():
