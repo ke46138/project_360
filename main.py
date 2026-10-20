@@ -285,10 +285,6 @@ async def get_user_id_command(message: types.Message, bot: Bot):
         )
 
 if __name__ == "__main__":
-    from sdnotify import SystemdNotifier
-    notifier = SystemdNotifier()
-    notifier.notify('READY=1')
-
     if config.API_MODE == "polling":
         asyncio.run(polling_startup())
     elif config.API_MODE == "webhook":

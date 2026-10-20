@@ -1,7 +1,6 @@
 fastapi
 aiogram
 PyYAML
-sdnotify
 uvicorn
 aiomysql
 cachetools
@@ -17,3 +16,5 @@ openai
 aiohttp
 petrovich
 redis
+python-dateutil
+cryptography

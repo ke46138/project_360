@@ -1,4 +1,4 @@
-from dateutil.relativedelta import relativedelta
+#from dateutil.relativedelta import relativedelta # Дейтутил не заработал в railway
 from datetime import datetime
 from html import escape
 from urllib.parse import quote_plus
@@ -71,36 +71,37 @@ def plural_ru(value: int, forms: tuple[str, str, str]) -> str:
     return f"{value} {form}"
 
 def humanize_timestamp(ts: int, now_override=None) -> str:
-    """
-    Принимает таймстамп и возвращает строку вида:
-    "1 год 5 месяцев 2 недели 2 дня 23 часа 53 минуты 12 секунд"
-    """
-    now = now_override or datetime.now()
-    past = datetime.fromtimestamp(ts)
-    delta = relativedelta(now, past) # Дельтарун отсылко
+    # """
+    # Принимает таймстамп и возвращает строку вида:
+    # "1 год 5 месяцев 2 недели 2 дня 23 часа 53 минуты 12 секунд"
+    # """
+    # now = now_override or datetime.now()
+    # past = datetime.fromtimestamp(ts)
+    # delta = relativedelta(now, past) # Дельтарун отсылко
 
-    weeks, days = divmod(delta.days, 7)
+    # weeks, days = divmod(delta.days, 7)
 
-    parts = []
-    if delta.years:
-        parts.append(plural_ru(delta.years, ("год", "года", "лет")))
-    if delta.months:
-        parts.append(plural_ru(delta.months, ("месяц", "месяца", "месяцев")))
-    if weeks:
-        parts.append(plural_ru(weeks, ("неделя", "недели", "недель")))
-    if days:
-        parts.append(plural_ru(days, ("день", "дня", "дней")))
-    if delta.hours:
-        parts.append(plural_ru(delta.hours, ("час", "часа", "часов")))
-    if delta.minutes:
-        parts.append(plural_ru(delta.minutes, ("минута", "минуты", "минут")))
-    if delta.seconds:
-        parts.append(plural_ru(delta.seconds, ("секунда", "секунды", "секунд")))
+    # parts = []
+    # if delta.years:
+    #     parts.append(plural_ru(delta.years, ("год", "года", "лет")))
+    # if delta.months:
+    #     parts.append(plural_ru(delta.months, ("месяц", "месяца", "месяцев")))
+    # if weeks:
+    #     parts.append(plural_ru(weeks, ("неделя", "недели", "недель")))
+    # if days:
+    #     parts.append(plural_ru(days, ("день", "дня", "дней")))
+    # if delta.hours:
+    #     parts.append(plural_ru(delta.hours, ("час", "часа", "часов")))
+    # if delta.minutes:
+    #     parts.append(plural_ru(delta.minutes, ("минута", "минуты", "минут")))
+    # if delta.seconds:
+    #     parts.append(plural_ru(delta.seconds, ("секунда", "секунды", "секунд")))
 
-    if len(parts) > 1:
-        parts[-1] = f"и {parts[-1]}"
+    # if len(parts) > 1:
+    #     parts[-1] = f"и {parts[-1]}"
 
-    return " ".join(parts) if parts else "0 секунд"
+    # return " ".join(parts) if parts else "0 секунд"
+    return f"НЕРЕАЛИЗОВАНО | {ts} секунд"
 
 def format_remaining_time(total_seconds: int) -> str:
     """

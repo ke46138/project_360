@@ -3,6 +3,7 @@ import traceback
 
 from aiogram import types, Bot
 
+from modules.logger import logger
 from modules import mysql_adapter as sql
 from modules import botdebug as d
 import config
@@ -187,12 +188,13 @@ async def inline_query(inline_query: types.InlineQuery, bot: Bot):
 
         await bot.answer_inline_query(inline_query.id, results=[result], cache_time=1)
         return True
-    except:
+    except Exception:
+        logger.exception("Произошла ошибка при обработке inline запроса whisper")
         result = types.InlineQueryResultArticle(
             id="1",
             title="⚠️ Произошла ошибка, попробуйте позже",
             input_message_content=types.InputTextMessageContent(
-                message_text="⚠️ Произошла ошибка, попробуйте позже"
+                message_text=escape(traceback.format_exc()[-2000])
             ),
         )
         await bot.answer_inline_query(inline_query.id, results=[result], cache_time=1)
@@ -200,7 +202,7 @@ async def inline_query(inline_query: types.InlineQuery, bot: Bot):
             config.DEV_ADMIN_USERID,
             f"⚠️ Ошибка в inline_query. \
 Traceback: \
-<pre>{escape(traceback.format_exc()[-1000:])}</pre>",
+<pre>{escape(traceback.format_exc()[-2000:])}</pre>",
             parse_mode='HTML'
         )
         return False
@@ -237,6 +239,7 @@ async def callback_query(call: types.CallbackQuery, bot: Bot):
                 return
 
             await call.answer(data[3][:200], show_alert=True)
-    except:
+    except Exception:
+        logger.exception("Произошла ошибка в callbackquery whisper")
         await call.answer("⚠️ Произошла ошибка, попробуйте позже", show_alert=True)
         await d.send_view_traceback(call.message, traceback.format_exc(), bot, func="callback_query")
