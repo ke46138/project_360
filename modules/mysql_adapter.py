@@ -460,7 +460,7 @@ async def get_group_users(chatid):
     async with pool.acquire() as conn:
         async with conn.cursor() as cursor:
             await cursor.execute(
-                'SELECT * FROM users_table WHERE chatid = %s',
+                'SELECT * FROM users_table WHERE chat_id = %s',
                 (chatid,)
             )
             result = await cursor.fetchall()
