@@ -69,7 +69,7 @@ def verify_page_loaded(driver: ChromiumPage) -> bool:
         body = driver.ele('tag:body', timeout=10)
         # Check if page has actual content
         return len(body.html) > 100
-    except:
+    except Exception:
         return False
 
 

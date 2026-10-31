@@ -37,23 +37,11 @@ windings2text_dict = {
     'ॐ': '\\', '🕭': '%', '©': '©', '®': '®', '™': '™', '☯': '[', '☸': ']', '🖫': '<', '✇': '>'
 }
 
-def text2windings(text):
-    result = []
-    for char in text:
-        if char in text2wingdings_dict:
-            result.append(text2wingdings_dict[char])
-        else:
-            result.append(char)
-    return ''.join(result)
+def text2windings(text: str) -> str:
+    return ''.join(text2wingdings_dict.get(char, char) for char in text)
 
-def windings2text(text):
-    result = []
-    for char in text:
-        if char in windings2text_dict:
-            result.append(windings2text_dict[char])
-        else:
-            result.append(char)
-    return ''.join(result)
+def windings2text(text: str) -> str:
+    return ''.join(windings2text_dict.get(char, char) for char in text)
 
 async def inline_query(inline_query: types.InlineQuery, bot: Bot):
     try:
@@ -175,7 +163,7 @@ async def inline_query(inline_query: types.InlineQuery, bot: Bot):
             return True
         else:
             return False
-    except:
+    except Exception:
         result = types.InlineQueryResultArticle(
             id="1",
             title="⚠️ Произошла ошибка, попробуйте позже",

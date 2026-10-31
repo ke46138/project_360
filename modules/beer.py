@@ -64,7 +64,7 @@ async def beer_top_command(message: types.Message, bot: Bot):
     for user in top_users:
         try:
             user_info = await bot.get_chat_member(message.chat.id, user["userid"])
-        except:
+        except Exception:
             await sql.delete_from_beer(user["userid"], message.chat.id)
             continue
 

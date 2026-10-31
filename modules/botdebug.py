@@ -92,7 +92,7 @@ async def debug(message: types.Message, bot: Bot):
         )
 
         await message.reply("Что вы хотите отладить?", reply_markup=markup)
-    except:
+    except Exception:
         await send_view_traceback(message, traceback.format_exc(), bot)
 
 def bugreport(func):
@@ -106,7 +106,7 @@ def bugreport(func):
 
         try:
             return await func(*args, **kwargs)
-        except:
+        except Exception:
             await send_view_traceback(message, traceback.format_exc(), bot, func.__name__)
 
     return wrapper
@@ -246,23 +246,35 @@ async def start_handler(message: types.Message, bot: Bot) -> None:
         reply_markup=keyboard
     )
 
-async def callback_query(call: types.CallbackQuery):
+async def callback_query(call: types.CallbackQuery) -> bool:
+    if not call.data:
+        return False
+
     if call.data == 'urlallowlist':
-        await call.message.edit_text(str(config.URL_ALLOWLIST), reply_markup=deleteMarkup)
+        if call.message:
+            await call.message.edit_text(str(config.URL_ALLOWLIST), reply_markup=deleteMarkup)
     elif call.data == 'tracebackyes':
-        await call.message.edit_text(
-            f"<pre>{escape(last_tb[-1000:])}</pre>",
-            reply_markup=deleteMarkup,
-            disable_web_page_preview=True,
-            parse_mode="HTML"
-        )
+        if call.message:
+            await call.message.edit_text(
+                f"<pre>{escape(last_tb[-1000:])}</pre>",
+                reply_markup=deleteMarkup,
+                disable_web_page_preview=True,
+                parse_mode="HTML"
+            )
     elif call.data == 'tracebackno':
-        await call.message.delete()
+        if call.message:
+            await call.message.delete()
     elif call.data == 'deletemessage':
-        await call.message.delete()
+        if call.message:
+            await call.message.delete()
     else:
-        return
-    await call.answer("Готово!")
+        return False
+
+    try:
+        await call.answer("Готово!")
+    except Exception:
+        pass
+    return True
 
 class ExecutionTimeMiddleware(BaseMiddleware):
     """Middleware для измерения скорости выполнения хандлеров"""
@@ -281,16 +293,16 @@ class ExecutionTimeMiddleware(BaseMiddleware):
             user = data.get("event_from_user")
             if isinstance(event, types.Message):
                 chatid = event.chat.id
-            elif isinstance(event, types.CallbackQuery):
+            elif isinstance(event, types.CallbackQuery) and event.message:
                 chatid = event.message.chat.id
             else:
                 chatid = 0
 
             command = getattr(event, "text", "unknown")
 
-            if command is None or command[0] != "/":
+            if command is None or command == "" or command[0] != "/":
                 command = "srv"
             if command != "/show_performance":
                 await sql.write_statistics(command[:30], duration, getattr(user, 'id', 0), chatid)
-        except:
+        except Exception:
             logger.error(traceback.format_exc())

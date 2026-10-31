@@ -185,7 +185,7 @@ async def unmute_command(message: types.Message, bot: Bot):
                     can_manage_topics=True
                 )
             )
-        except:
+        except Exception:
             await message.reply(
                 "⚠️ Не удалось изменить права пользователя. \
 Убедитесь, что у бота есть разрешение на это"
@@ -239,7 +239,7 @@ async def callback_query(call: types.CallbackQuery, bot: Bot):
 
             await call.answer("Готово!")
             await call.message.edit_text(f"{call.message.html_text}\n⚠️ Действие отменено")
-    except:
+    except Exception:
         await d.send_view_traceback(
             call.message,
             traceback.format_exc(),

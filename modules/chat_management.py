@@ -1,13 +1,16 @@
 import asyncio
+from html import escape
 
 from aiogram import Router, types, Bot
 from aiogram.filters import Command
 
+import config
 from modules import async_tasks
 from modules import auth
 from modules import botdebug as d
 from modules import filters
 from modules import mysql_adapter as sql
+from modules import urlfilter
 from modules import utils
 
 router = Router()
@@ -20,7 +23,7 @@ async def pin_command(message: types.Message, bot: Bot):
     if message.reply_to_message:
         await message.reply_to_message.pin()
         await message.react([types.ReactionTypeEmoji(emoji='👍')])
-        await asyncio.create_task(async_tasks.delete_msg(message, bot))
+        asyncio.create_task(async_tasks.delete_msg(message, bot))
     else:
         await message.reply("⚠️ Вы должны ответить на сообщение, которое хотите закрепить")
 
@@ -32,9 +35,9 @@ async def unpin_command(message: types.Message, bot: Bot):
     if message.reply_to_message:
         await message.reply_to_message.unpin()
         await message.react([types.ReactionTypeEmoji(emoji='👍')])
-        await asyncio.create_task(async_tasks.delete_msg(message, bot))
+        asyncio.create_task(async_tasks.delete_msg(message, bot))
     else:
-        await message.reply("⚠️ Вы должны ответить на сообщние, которое хотите открепить")
+        await message.reply("⚠️ Вы должны ответить на сообщение, которое хотите открепить")
 
 @router.message(Command("ping_admins"))
 @d.bugreport
@@ -119,22 +122,105 @@ async def set_rules_command(message: types.Message, bot: Bot):
 @router.message(Command('disable_urlfilter'))
 @d.bugreport
 @filters.only_groups
-@filters.not_for_abrikos
 @auth.require_auth(level=200)
 async def disable_urlfilter_command(message: types.Message, bot: Bot):
     await sql.update_urlfilter_enabled(message.chat.id, False)
-
-    await message.reply("✅ Фильтр ссылок выключен. Изменения вступят в силу в течении 15 минут")
+    urlfilter.set_cached_status(message.chat.id, False)
+    await message.reply("✅ Фильтр ссылок выключен.")
 
 @router.message(Command('enable_urlfilter'))
 @d.bugreport
 @filters.only_groups
-@filters.not_for_abrikos
 @auth.require_auth(level=200)
 async def enable_urlfilter_command(message: types.Message, bot: Bot):
     await sql.update_urlfilter_enabled(message.chat.id, True)
+    urlfilter.set_cached_status(message.chat.id, True)
+    await message.reply("✅ Фильтр ссылок включён.")
 
-    await message.reply("✅ Фильтр ссылок включён. Изменения вступят в силу в течении 15 минут")
+@router.message(Command('add_filter_link'))
+@d.bugreport
+@filters.only_groups
+@auth.require_auth(level=200)
+async def add_filter_link_command(message: types.Message, bot: Bot):
+    args = message.text.split(maxsplit=1)
+    if len(args) < 2 or not args[1].strip():
+        await message.reply(
+            "⚠️ Укажите домен. Пример: /add_filter_link example.com",
+            parse_mode="HTML"
+        )
+        return
+
+    raw_domain = args[1].strip().split()[0]
+    domain = urlfilter.normalize_domain(raw_domain)
+    if not domain or "." not in domain:
+        await message.reply(
+            "⚠️ Некорректный домен. Пример: example.com",
+            parse_mode="HTML"
+        )
+        return
+
+    added = await sql.add_group_allowed_url(message.chat.id, domain)
+    if added:
+        urlfilter.invalidate_domains_cache(message.chat.id)
+        await message.reply(
+            f"✅ Домен {escape(domain)} успешно добавлен в список разрешённых",
+            parse_mode="HTML"
+        )
+    else:
+        await message.reply(
+            f"ℹ️ Домен {escape(domain)} уже находится в списке разрешённых",
+            parse_mode="HTML"
+        )
+
+@router.message(Command('del_filter_link', 'remove_filter_link'))
+@d.bugreport
+@filters.only_groups
+@auth.require_auth(level=200)
+async def del_filter_link_command(message: types.Message, bot: Bot):
+    args = message.text.split(maxsplit=1)
+    if len(args) < 2 or not args[1].strip():
+        await message.reply(
+            "⚠️ Укажите домен для удаления. Пример: /del_filter_link example.com",
+            parse_mode="HTML"
+        )
+        return
+
+    raw_domain = args[1].strip().split()[0]
+    domain = urlfilter.normalize_domain(raw_domain)
+    if not domain:
+        await message.reply(
+            "⚠️ Некорректный домен",
+            parse_mode="HTML"
+        )
+        return
+
+    removed = await sql.remove_group_allowed_url(message.chat.id, domain)
+    if removed:
+        urlfilter.invalidate_domains_cache(message.chat.id)
+        await message.reply(
+            f"✅ Домен {escape(domain)} удалён из списка разрешённых",
+            parse_mode="HTML"
+        )
+    else:
+        await message.reply(
+            f"⚠️ Домен {escape(domain)} не найден в списке разрешённых доменов",
+            parse_mode="HTML"
+        )
+
+@router.message(Command('filter_links', 'filter_link_list', 'list_filter_links'))
+@d.bugreport
+@filters.only_groups
+async def list_filter_links_command(message: types.Message, bot: Bot):
+    custom_domains = await sql.get_group_allowed_urls(message.chat.id)
+
+    lines = ["<b>🌐 Разрешённые домены для ссылок:</b>\n"]
+    if custom_domains:
+        for d_name in sorted(custom_domains):
+            lines.append(f"    {escape(d_name)}")
+    else:
+        lines.append("⚠️ Разрешённые домены не добавлены")
+
+    await message.reply("\n".join(lines), parse_mode='HTML')
 
 @router.message(Command('set_hello'))
 @d.bugreport

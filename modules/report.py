@@ -61,7 +61,7 @@ async def report(message: types.Message, bot: Bot):
 """,
                         parse_mode='HTML'
                     )
-                except:
+                except Exception:
                     continue
 
         await message.reply(

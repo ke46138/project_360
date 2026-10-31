@@ -149,7 +149,7 @@ async def mute_command(message: types.Message, bot: Bot, text: str):
 
     try:
         user = await bot.get_chat_member(message.chat.id, target)
-    except:
+    except Exception:
         await message.reply("📝 Не могу найти информацию о пользователе")
         return
 
@@ -275,7 +275,7 @@ async def del_admin_command(message: types.Message, bot: Bot, text: str):
     try:
         user = await bot.get_chat_member(message.chat.id, target)
         user_id = user.user.id
-    except:
+    except Exception:
         await message.reply("📝 Нет информации о пользователе")
         return
 
@@ -326,7 +326,7 @@ async def pmoder_command(message: types.Message, bot: Bot, text: str):
     try:
         user = await bot.get_chat_member(message.chat.id, target)
         user_id = user.user.id
-    except:
+    except Exception:
         await message.reply("📝 Нет информации о пользователе")
         return
 

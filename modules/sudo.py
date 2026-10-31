@@ -24,7 +24,6 @@ async def sudo(message: types.Message, bot: Bot):
             return
 
         full_message = ""
-        index = 0
 
         if args[1] == "bot":
             if args[2] == "sendMessage":
@@ -71,5 +70,5 @@ async def sudo(message: types.Message, bot: Bot):
             return
 
         await message.react([ReactionTypeEmoji(emoji='👍')])
-    except:
+    except Exception:
         await d.send_view_traceback(message, traceback.format_exc(), bot)

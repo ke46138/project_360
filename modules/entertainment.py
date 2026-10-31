@@ -17,7 +17,6 @@ from openai import AsyncOpenAI
 from openai import RateLimitError, APIError, InternalServerError
 
 import config
-# ! DEPRECATED: Нужно заменить на что-то более качественное или развивать этот форк
 from dsk.api import DeepSeekAPI
 from modules import async_tasks
 from modules import auth
@@ -143,7 +142,7 @@ Traceback: \
 <pre>{escape(traceback.format_exc()[-1000:])}</pre>",
             parse_mode='HTML'
         )
-    except:
+    except Exception:
         await d.send_view_traceback(message, traceback.format_exc(), bot, func="ask_ai")
 
 @d.bugreport
@@ -204,7 +203,7 @@ async def ask_ai_deepseek_stream(message: types.Message, bot: Bot, usrmsg: str):
                             draft_id=draft_id, 
                             text=escape(ai_msg[:2000])
                         )
-                    except:
+                    except Exception:
                         pass
             if chunk['type'] == 'message_info':
                 await redis.set_deepseek_message_id(chunk['message_id'])
@@ -326,7 +325,6 @@ async def sync_ai_history_command(message: types.Message, bot: Bot):
 @d.bugreport
 @filters.cooldown
 @filters.only_groups
-@filters.not_for_abrikos
 async def attack_command(message: types.Message, bot: Bot):
     """Атаковать пользователя"""
     if message.reply_to_message:
@@ -534,7 +532,7 @@ async def dr_board_command(message: types.Message, bot: Bot):
     for i in result:
         try:
             user = await bot.get_chat_member(message.chat.id, i["userid"])
-        except:
+        except Exception:
             await sql.delete_from_social_credit_table(i["userid"], message.chat.id)
             continue
 
@@ -569,7 +567,7 @@ async def dr_board_debt_command(message: types.Message, bot: Bot):
     for i in result:
         try:
             user = await bot.get_chat_member(message.chat.id, i["userid"])
-        except:
+        except Exception:
             await sql.delete_from_social_credit_table(i["userid"], message.chat.id)
             continue
 
@@ -807,7 +805,7 @@ async def weather_command(message: types.Message, bot: Bot):
                 if weather == "" or weather == None or len(weather) < 10:
                     await msg.edit_text("⚠️ Ответ от API пустой. Повторите попытку позже")
                     return
-    except:
+    except Exception:
         await message.reply("⚠️ Ошибка получения погоды")
         return
 
@@ -905,7 +903,7 @@ async def cubes_task(p1_id: int, p2_id: int, chat_id: int, bot: Bot, message: ty
             result_text = f"🎲 Ничья"
 
         await message.reply(result_text)
-    except:
+    except Exception:
         await d.send_view_traceback(message, traceback.format_exc(), bot, func="cubes_task")
 
 @router.message(Command('marriage'))
@@ -1133,7 +1131,7 @@ async def callback_query(call: types.CallbackQuery, bot: Bot):
 
             await call.message.delete() # type: ignore
             await call.answer("Готово!")
-    except:
+    except Exception:
         await d.send_view_traceback(
             call.message, # type: ignore
             traceback.format_exc(),

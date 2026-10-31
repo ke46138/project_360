@@ -1,23 +1,51 @@
 # Project 360
 
-![Static Badge](https://img.shields.io/badge/Python-%3E%3D3.10-yellow?style=flat-square)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/m/ke46138/project_360?style=flat-square&color=2a5c03)
+![Static Badge](https://img.shields.io/badge/Python-%3E%3D3.14-yellow?style=flat-square)
 
-Модульный бот для администрирования групп и каналов в телеграме.
+Модульный Telegram-бот для администрирования групп и каналов на базе `aiogram 3`.
 
 ## Требования
 
-- Сервер/компьютер готовый работать 24/7, желательно на Linux
-- MySQL база данных
-- Redis база данных
-- API ключи для работы /ai, /ai_ds и /cat
-- Белый IP адрес (для polling необязательно) или свой Telegram Bot API сервер
-- Очень желательны знания Python и aiogram
+- Python >= 3.14 (или Docker)
+- MySQL / MariaDB
+- Redis
+- API-ключи (Telegram Bot Token, OpenRouter/OpenAI, DeepSeek и TheCatAPI при использовании соответствующих команд)
 
-## Настройка
+## Настройка окружения
 
-0) В BotFather получить API ключ и включить inline mode.
-1) Склонируйте репозиторий: `git clone https://github.com/ke46138/project_360.git` или если у вас настроен ssh ключ: `git clone git@github.com:ke46138/project_360.git`
-2) Перейдите в папку репозитория: `cd project_360`
-3) Установите все зависимости: `pip install -r requirements.txt`
-4) Запустите бота: `python main.py` или `./main.py`
+1. Получите токен бота в [@BotFather](https://t.me/BotFather) и включите inline mode (`/setinline`).
+2. Скопируйте шаблон переменных окружения:
+   ```bash
+   cp .env.example .env
+   ```
+3. Заполните необходимые параметры в `.env` (токен бота, реквизиты MySQL и Redis).
+
+## Запуск
+
+### Вариант 1: Через Docker (рекомендуется)
+
+Запуск через Docker Compose:
+```bash
+docker compose up -d --build
+```
+
+Просмотр логов:
+```bash
+docker compose logs -f
+```
+
+### Вариант 2: Без Docker
+
+#### С использованием `uv` (рекомендуется):
+```bash
+uv sync
+uv run python main.py
+```
+
+#### С использованием стандартного `pip`:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python main.py
+```

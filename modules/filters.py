@@ -1,4 +1,4 @@
-"""Различные фильтры для команд"""
+"""Различные фильтры и декораторы для команд"""
 
 import asyncio
 import time
@@ -11,30 +11,37 @@ from modules import utils
 
 cooldown_list = defaultdict(lambda: defaultdict(float))
 
+
 def cooldown(func=None, *, ctime=3):
+    """Декоратор для ограничения частоты вызова команд (в секундах)"""
     def decorator(f):
         @wraps(f)
         async def wrapper(*args, **kwargs):
             message = kwargs.get('message') or (args[0] if args else None)
-            bot = kwargs.get('bot') or (args[1] if args else None)
+            bot = kwargs.get('bot') or (args[1] if len(args) > 1 else None)
 
             if not message or not bot:
                 raise ValueError("Message или Bot не найден в аргументах!")
 
-            command, *_ = message.text.split(maxsplit=1)
-            command_last_used = cooldown_list[command][message.chat.id]
+            if not message.text:
+                return await f(*args, **kwargs)
 
-            temp_time = time.time()
+            command = message.text.split(maxsplit=1)[0]
+            chat_id = message.chat.id
+            command_last_used = cooldown_list[command][chat_id]
+            current_time = time.time()
 
-            if command_last_used + ctime < temp_time:
-                cooldown_list[command][message.chat.id] = temp_time
+            if command_last_used + ctime < current_time:
+                cooldown_list[command][chat_id] = current_time
             else:
+                remaining = (command_last_used + ctime) - current_time
                 msg = await message.reply(
-                    f"<tg-emoji emoji-id=\"5240106125436683458\">⏳</tg-emoji> Подождите ещё {((command_last_used + ctime) - temp_time):.2f} секунд",
+                    f"<tg-emoji emoji-id=\"5240106125436683458\">⏳</tg-emoji> "
+                    f"Подождите ещё {remaining:.2f} секунд",
                     parse_mode="HTML"
                 )
-                await asyncio.create_task(async_tasks.delete_msg(msg, bot))
-                await asyncio.create_task(async_tasks.delete_msg(message, bot))
+                asyncio.create_task(async_tasks.delete_msg(msg, bot))
+                asyncio.create_task(async_tasks.delete_msg(message, bot))
                 return None
 
             return await f(*args, **kwargs)
@@ -46,8 +53,9 @@ def cooldown(func=None, *, ctime=3):
 
     return decorator
 
+
 def only_groups(func):
-    """Декоратор для команд. Запрещает команду везде, кроме групп"""
+    """Декоратор для команд и обработчиков. Разрешает выполнение только в группах/супергруппах"""
     @wraps(func)
     async def wrapper(*args, **kwargs):
         message = kwargs.get('message') or (args[0] if args else None)
@@ -55,16 +63,18 @@ def only_groups(func):
         if not message:
             raise ValueError("Message не найден в аргументах!")
 
-        if message.chat.type != "supergroup" and message.chat.type != "group":
-            await message.reply("⚠️ Эта команда доступна только в группах/супергруппах")
+        if message.chat.type not in ("supergroup", "group"):
+            if message.text and message.text.startswith("/"):
+                await message.reply("⚠️ Эта команда доступна только в группах/супергруппах")
             return None
 
         return await func(*args, **kwargs)
 
     return wrapper
 
+
 def no_groups(func):
-    """Декоратор для команд. Запрещает команду в группах"""
+    """Декоратор для команд. Запрещает обычные группы (требует супергруппу)"""
     @wraps(func)
     async def wrapper(*args, **kwargs):
         message = kwargs.get('message') or (args[0] if args else None)
@@ -73,14 +83,16 @@ def no_groups(func):
             raise ValueError("Message не найден в аргументах!")
 
         if message.chat.type == "group":
-            await message.reply("⚠️ Эта команда доступна только в супергруппах/группах")
+            await message.reply("⚠️ Эта команда доступна только в супергруппах")
             return None
 
         return await func(*args, **kwargs)
 
     return wrapper
 
+
 def only_private(func):
+    """Декоратор для команд. Разрешает выполнение только в личных сообщениях"""
     @wraps(func)
     async def wrapper(*args, **kwargs):
         message = kwargs.get('message') or (args[0] if args else None)
@@ -96,58 +108,21 @@ def only_private(func):
 
     return wrapper
 
-def not_for_abrikos(func=None, *, detect=True):
-    def decorator(f):
-        @wraps(f)
-        async def wrapper(*args, **kwargs):
-            message = kwargs.get('message') or (args[0] if args else None)
-
-            if not message:
-                raise ValueError("Message не найден в аргументах!")
-
-            if message.chat.id == -1002298339941:
-                if not detect:
-                    return None
-                await message.reply("⚠️ Эта команда недоступна в группе абрикоса")
-                return None
-
-            return await f(*args, **kwargs)
-
-        return wrapper
-
-    if func is not None:
-        return decorator(func)
-
-    return decorator
-
-def only_abrikos(func):
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        message = kwargs.get('message') or (args[0] if args else None)
-
-        if not message:
-            raise ValueError("Message не найден в аргументах!")
-
-        if message.chat.id != -1002298339941:
-            await message.reply("⚠️ Эта команда работает только в группе абрикоса")
-            return
-
-        return await func(*args, **kwargs)
-
-    return wrapper
 
 def only_sentry_instance(func):
+    """Фильтр для команд, доступных только на определенном инстансе бота"""
     @wraps(func)
     async def wrapper(*args, **kwargs):
         message = kwargs.get('message') or (args[0] if args else None)
 
-        if utils.BOT_ID != 7732881719:
+        if utils.BOT_ID != 7732881719 and utils.BOT_ID != 0:
             await message.reply("⚠️ Эта команда доступна только у бота 360 Total Security | Sentry")
             return None
 
         return await func(*args, **kwargs)
 
     return wrapper
+
 
 def antidev(func):
     """Декоратор для команд. Запрещает использовать команду на разработчике"""
@@ -158,9 +133,13 @@ def antidev(func):
         if not message:
             raise ValueError("Message не найден в аргументах!")
 
-        if message.reply_to_message and message.reply_to_message.from_user.id == config.DEV_ADMIN_USERID:
+        if (
+            message.reply_to_message
+            and message.reply_to_message.from_user
+            and message.reply_to_message.from_user.id == config.DEV_ADMIN_USERID
+        ):
             await message.reply("⚠️ Нельзя использовать эту команду на разработчике")
-            return
+            return None
 
         return await func(*args, **kwargs)
 

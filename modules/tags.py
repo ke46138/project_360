@@ -34,7 +34,7 @@ async def set_tag_command(message: types.Message, bot: Bot):
 
         try:
             await bot.set_chat_member_tag(message.chat.id, message.reply_to_message.from_user.id, tag)
-        except:
+        except Exception:
             await message.reply("⚠️ Не удалось изменить тег. Возможно, у бота нет прав на это")
             return
 

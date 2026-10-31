@@ -455,6 +455,66 @@ async def update_urlfilter_enabled(chatid, isEnabled):
                 (isEnabled, chatid,)
             )
 
+async def get_group_allowed_urls(chatid) -> list[str]:
+    """Получить список разрешённых URL для группы"""
+    async with pool.acquire() as conn:
+        async with conn.cursor(aiomysql.DictCursor) as cursor:
+            await cursor.execute(
+                'SELECT allowed_urls FROM group_settings WHERE chatid = %s',
+                (chatid,)
+            )
+            result = await cursor.fetchone()
+            if result is None or result == []:
+                await create_group(cursor, chatid)
+                return []
+
+            raw = result.get("allowed_urls")
+            if not raw or raw == "[]" or raw == "":
+                return []
+            try:
+                data = ast.literal_eval(raw)
+                if isinstance(data, list):
+                    return [str(x) for x in data]
+                return []
+            except (ValueError, SyntaxError):
+                return []
+
+async def set_group_allowed_urls(chatid, allowed_urls: list[str]):
+    """Установить список разрешённых URL для группы"""
+    async with pool.acquire() as conn:
+        async with conn.cursor(aiomysql.DictCursor) as cursor:
+            await cursor.execute(
+                'SELECT id FROM group_settings WHERE chatid = %s',
+                (chatid,)
+            )
+            result = await cursor.fetchone()
+            if result is None or result == []:
+                await create_group(cursor, chatid)
+            await cursor.execute(
+                "UPDATE group_settings SET allowed_urls = %s WHERE chatid = %s",
+                (str(allowed_urls), chatid,)
+            )
+
+async def add_group_allowed_url(chatid, domain: str) -> bool:
+    """Добавить домен в список разрешённых для группы"""
+    domains = await get_group_allowed_urls(chatid)
+    domain = domain.lower().strip()
+    if domain in domains:
+        return False
+    domains.append(domain)
+    await set_group_allowed_urls(chatid, domains)
+    return True
+
+async def remove_group_allowed_url(chatid, domain: str) -> bool:
+    """Удалить домен из списка разрешённых для группы"""
+    domains = await get_group_allowed_urls(chatid)
+    domain = domain.lower().strip()
+    if domain not in domains:
+        return False
+    domains.remove(domain)
+    await set_group_allowed_urls(chatid, domains)
+    return True
+
 async def get_group_users(chatid):
     """Получить пользователей группы"""
     async with pool.acquire() as conn:
