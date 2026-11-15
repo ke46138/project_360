@@ -361,7 +361,7 @@ AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
                     if isinstance(data["v"], dict):
                         if "response" in data["v"]:
                             return {
-                                'content': data["v"]["response"]["content"],
+                                'content': data["v"]["fragments"]["content"],
                                 'type': 'message',
                                 'finish_reason': "finish_reason"
                             }
