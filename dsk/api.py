@@ -361,9 +361,14 @@ AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
                     if isinstance(data["v"], dict):
                         if "response" in data["v"]:
                             return {
-                                'content': data["v"]["fragments"]["content"],
+                                'content': data["v"]["response"][0]["fragments"]["content"],
                                 'type': 'message',
                                 'finish_reason': "finish_reason"
+                            }
+                        if data.get("v", {}).get("response", {}).get("message_id"):
+                            return {
+                                'type': 'message_info',
+                                'message_id': data.get("v").get("response").get("message_id")
                             }
                     if isinstance(data['v'], str):
                         if 'p' in data and data['p'] == "response/status":
