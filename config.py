@@ -1,40 +1,10 @@
-"""Модуль конфигурации бота.
-
-Загружает переменные окружения, в том числе из файла .env при его наличии,
-обеспечивая полную совместимость для запуска как в Docker, так и без него.
-"""
+"""Модуль конфигурации бота"""
 
 from __future__ import annotations
 
 import os
 from pathlib import Path
 from typing import Any, Set
-
-
-def _load_dotenv(dotenv_path: Path | str | None = None) -> None:
-    """Загружает переменные из .env файла в os.environ, если они ещё не установлены."""
-    if dotenv_path is None:
-        dotenv_path = Path(__file__).resolve().parent / ".env"
-    else:
-        dotenv_path = Path(dotenv_path)
-
-    if not dotenv_path.is_file():
-        return
-
-    try:
-        with open(dotenv_path, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith("#"):
-                    continue
-                if "=" in line:
-                    key, val = line.split("=", 1)
-                    key = key.strip()
-                    val = val.strip().strip('"').strip("'")
-                    if key and key not in os.environ:
-                        os.environ[key] = val
-    except OSError:
-        pass
 
 
 class _Config:
@@ -82,8 +52,7 @@ class _Config:
         self.reload()
 
     def reload(self) -> None:
-        """Перезагружает конфигурацию из файла .env и переменных окружения."""
-        _load_dotenv()
+        """Перезагружает конфигурацию из файла .env и переменных окружения"""
 
         self.PROJECT_NAME = os.getenv("PROJECT_NAME", "project_360")
         self.BOT_TOKEN = os.getenv("BOT_TOKEN", "")
@@ -105,7 +74,7 @@ class _Config:
         self.BOT_PATH = os.getenv("BOT_PATH", str(Path(__file__).resolve().parent))
         self.ABOUT_BOT_TEXT = os.getenv(
             "ABOUT_BOT_TEXT",
-            "Бот для администрирования групп и каналов в Telegram."
+            "Бот для администрирования групп и каналов в Telegram"
         )
 
         self.MYSQL_HOST = os.getenv("MYSQL_HOST", "localhost")
@@ -133,10 +102,10 @@ _config = _Config()
 
 
 def reload() -> None:
-    """Публичная функция перезагрузки конфигурации."""
+    """Публичная функция перезагрузки конфигурации"""
     _config.reload()
 
 
 def __getattr__(name: str) -> Any:
-    """Делегирует доступ к атрибутам конфигурации."""
+    """Делегирует доступ к атрибутам конфигурации"""
     return getattr(_config, name)
