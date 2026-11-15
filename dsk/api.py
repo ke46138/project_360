@@ -13,31 +13,38 @@ from .pow import DeepSeekPOW
 ThinkingMode = Literal['detailed', 'simple', 'disabled']
 SearchMode = Literal['enabled', 'disabled']
 
+
 class DeepSeekError(Exception):
     """Base exception for all DeepSeek API errors"""
     pass
+
 
 class AuthenticationError(DeepSeekError):
     """Raised when authentication fails"""
     pass
 
+
 class RateLimitError(DeepSeekError):
     """Raised when API rate limit is exceeded"""
     pass
+
 
 class NetworkError(DeepSeekError):
     """Raised when network communication fails"""
     pass
 
+
 class CloudflareError(DeepSeekError):
     """Raised when Cloudflare blocks the request"""
     pass
+
 
 class APIError(DeepSeekError):
     """Raised when API returns an error response"""
     def __init__(self, message: str, status_code: Optional[int] = None):
         super().__init__(message)
         self.status_code = status_code
+
 
 class DeepSeekAPI:
     BASE_URL = "https://chat.deepseek.com/api/v0"
@@ -55,11 +62,16 @@ class DeepSeekAPI:
             with open(cookies_path, 'r') as f:
                 cookie_data = json.load(f)
                 self.cookies = cookie_data.get('cookies', {})
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            logger.warning(f"Warning: Could not load cookies from {cookies_path}: {e}")
+        except (FileNotFoundError, json.JSONDecodeError):
+            logger.exception(
+                f"Warning: Could not load cookies from {cookies_path}"
+            )
             self.cookies = {}
 
-    def _get_headers(self, pow_response: Optional[str] = None) -> Dict[str, str]:
+    def _get_headers(
+        self,
+        pow_response: Optional[str] = None
+    ) -> Dict[str, str]:
         headers = {
             'accept': '*/*',
             'accept-language':
@@ -84,23 +96,19 @@ AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
     def _refresh_cookies(self) -> None:
         """Run the cookie refresh script and reload cookies"""
         try:
-            # Get path to bypass.py
             script_path = Path(__file__).parent / 'bypass.py'
 
-            # Run the script
             subprocess.run([sys.executable, script_path], check=True)
 
-            # Wait briefly for cookies file to be written
             time.sleep(2)
 
-            # Reload cookies
             cookies_path = Path(__file__).parent / 'cookies.json'
             with open(cookies_path, 'r') as f:
                 cookie_data = json.load(f)
                 self.cookies = cookie_data.get('cookies', {})
 
-        except Exception as e:
-            logger.warning(f"Warning: Failed to refresh cookies: {e}")
+        except Exception:
+            logger.exception("Warning: Failed to refresh cookies")
 
     def _make_request(
         self,
@@ -123,7 +131,7 @@ AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
                     headers = self._get_headers(pow_response)
 
                 response = requests.request(
-                    method=method,
+                    method=method, # type: ignore
                     url=url,
                     headers=headers,
                     json=json_data,
@@ -138,19 +146,26 @@ AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
                         "Warning: Cloudflare protection detected. Bypassing..."
                     )
                     if retry_count < max_retries - 1:
-                        self._refresh_cookies()  # Refresh cookies
+                        self._refresh_cookies()
                         retry_count += 1
                         continue
 
-                # Handle other response codes
                 if response.status_code == 401:
-                    raise AuthenticationError("Invalid or expired authentication token")
+                    raise AuthenticationError(
+                        "Invalid or expired authentication token"
+                    )
                 elif response.status_code == 429:
                     raise RateLimitError("API rate limit exceeded")
                 elif response.status_code >= 500:
-                    raise APIError(f"Server error occurred: {response.text}", response.status_code)
+                    raise APIError(
+                        f"Server error occurred: {response.text}",
+                        response.status_code
+                    )
                 elif response.status_code != 200:
-                    raise APIError(f"API request failed: {response.text}", response.status_code)
+                    raise APIError(
+                        f"API request failed: {response.text}",
+                        response.status_code
+                    )
 
                 return response.json()
 
@@ -159,7 +174,9 @@ AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
             except json.JSONDecodeError:
                 raise APIError("Invalid JSON response from server")
 
-        raise APIError("Failed to bypass Cloudflare protection after multiple attempts")
+        raise APIError(
+            "Failed to bypass Cloudflare protection after multiple attempts"
+        )
 
     def _get_pow_challenge(self) -> Dict[str, Any]:
         try:
@@ -182,14 +199,18 @@ AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
             )
             return response['data']['biz_data']['id']
         except KeyError:
-            raise APIError("Invalid session creation response format from server")
+            raise APIError(
+                "Invalid session creation response format from server"
+            )
 
-    async def chat_completion_async(self,
-                    chat_session_id: str,
-                    prompt: str,
-                    parent_message_id: Optional[str | int] = None,
-                    thinking_enabled: bool = False,
-                    search_enabled: bool = False) -> AsyncGenerator[Dict[str, Any], None]:
+    async def chat_completion_async(
+        self,
+        chat_session_id: str,
+        prompt: str,
+        parent_message_id: Optional[str | int] = None,
+        thinking_enabled: bool = False,
+        search_enabled: bool = False
+    ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Send a message and get streaming response
 
@@ -242,13 +263,24 @@ AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
                 )
 
                 if response.status_code != 200:
-                    error_text = next(response.iter_lines(), b'').decode('utf-8', 'ignore')
+                    error_text = next(
+                        response.iter_lines(),
+                        b''
+                    ).decode(
+                        'utf-8',
+                        'ignore'
+                    )
                     if response.status_code == 401:
-                        raise AuthenticationError("Invalid or expired authentication token")
+                        raise AuthenticationError(
+                            "Invalid or expired authentication token"
+                        )
                     elif response.status_code == 429:
                         raise RateLimitError("API rate limit exceeded")
                     else:
-                        raise APIError(f"API request failed: {error_text}", response.status_code)
+                        raise APIError(
+                            f"API request failed: {error_text}",
+                            response.status_code
+                        )
 
                 async for chunk in response.aiter_lines():
                     try:
@@ -263,12 +295,14 @@ AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
         except requests.exceptions.RequestException as e:
             raise NetworkError(f"Network error occurred during streaming: {str(e)}")
 
-    def chat_completion(self,
-                    chat_session_id: str,
-                    prompt: str,
-                    parent_message_id: Optional[str | int] = None,
-                    thinking_enabled: bool = False,
-                    search_enabled: bool = False) -> Generator[Dict[str, Any], None, None]:
+    def chat_completion(
+        self,
+        chat_session_id: str,
+        prompt: str,
+        parent_message_id: Optional[str | int] = None,
+        thinking_enabled: bool = False,
+        search_enabled: bool = False
+    ) -> Generator[Dict[str, Any], None, None]:
         """
         Send a message and get streaming response
 
@@ -313,20 +347,31 @@ AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
                 f"{self.BASE_URL}/chat/completion",
                 headers=headers,
                 json=json_data,
-                cookies=self.cookies,  # Add cookies
+                cookies=self.cookies,
                 impersonate='chrome120',
                 stream=True,
                 timeout=None
             )
 
             if response.status_code != 200:
-                error_text = next(response.iter_lines(), b'').decode('utf-8', 'ignore')
+                error_text = next(
+                    response.iter_lines(),
+                    b''
+                ).decode(
+                    'utf-8',
+                    'ignore'
+                )
                 if response.status_code == 401:
-                    raise AuthenticationError("Invalid or expired authentication token")
+                    raise AuthenticationError(
+                        "Invalid or expired authentication token"
+                    )
                 elif response.status_code == 429:
                     raise RateLimitError("API rate limit exceeded")
                 else:
-                    raise APIError(f"API request failed: {error_text}", response.status_code)
+                    raise APIError(
+                        f"API request failed: {error_text}",
+                        response.status_code
+                    )
 
             for chunk in response.iter_lines():
                 try:
@@ -361,7 +406,7 @@ AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
                     if isinstance(data["v"], dict):
                         if "response" in data["v"]:
                             return {
-                                'content': data["v"]["response"][0]["fragments"]["content"],
+                                'content': data["v"]["response"]["fragments"][0]["content"],
                                 'type': 'message',
                                 'finish_reason': "finish_reason"
                             }
