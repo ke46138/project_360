@@ -323,7 +323,7 @@ async def sync_ai_history_command(message: types.Message, bot: Bot):
 
 @router.message(Command('attack'))
 @d.bugreport
-@filters.cooldown
+@filters.cooldown(ctime=30)
 @filters.only_groups
 async def attack_command(message: types.Message, bot: Bot):
     """Атаковать пользователя"""
@@ -700,8 +700,8 @@ async def femboy_command(message: types.Message, bot: Bot):
 
 @router.message(Command('dep'))
 @d.bugreport
+@filters.cooldown(ctime=30)
 @filters.only_groups
-@filters.cooldown
 async def dep_command(message: types.Message, bot: Bot):
     """Если хочешь депнуть мне, то депай всё"""
     if random.random() <= 0.4:
